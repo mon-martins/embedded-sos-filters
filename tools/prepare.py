@@ -1,7 +1,5 @@
 """Canonical filter spec <-> pyfda pole-zero export (core + CLI).
 
-Pipeline stage 1.5.
-
 The pyfda export is "messy": only zpk, as rounded strings, in three equivalent
 formats (.csv / .npy / .npz), with no metadata. This module isolates all of
 that and converts, both ways, between:
@@ -171,20 +169,29 @@ def csv_to_spec(export_path: Path, *, name: str | None = None,
                       fs=fs, description=description, source=export_path.name)
 
 
+def _fmt_root(value) -> str:
+    """Format a root like pyfda: a plain real if imag == 0, else (re+imj)."""
+    c = complex(value)
+    return repr(c.real) if c.imag == 0.0 else str(c)
+
+
 def spec_to_csv_text(spec: dict) -> str:
     """Canonical spec -> pyfda-style pole-zero CSV text.
 
     Columns: zeros, poles, gain (gain only on the first row, like pyfda).
+    Real roots are written as plain floats (e.g. -1.0) and complex roots as
+    (re+imj). No trailing newline, matching pyfda's export so the round-trip
+    is byte-faithful.
     """
     zeros, poles, gain = spec_zpk(spec)
     n = max(len(zeros), len(poles))
     lines = []
     for i in range(n):
-        z = str(zeros[i]) if i < len(zeros) else ""
-        p = str(poles[i]) if i < len(poles) else ""
+        z = _fmt_root(zeros[i]) if i < len(zeros) else ""
+        p = _fmt_root(poles[i]) if i < len(poles) else ""
         k = repr(gain) if i == 0 else "0.0"
         lines.append(f"{z},{p},{k}")
-    return "\n".join(lines) + "\n"
+    return "\n".join(lines)
 
 
 # --------------------------------------------------------------------------- #

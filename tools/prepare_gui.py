@@ -1,4 +1,4 @@
-"""PyQt5 GUI for the filter prepare step (stage 1.5).
+"""PyQt5 GUI for the filter prepare step.
 
 A thin front-end over tools/prepare.py. Lets the user:
   - open a raw pyfda pole-zero export (.csv/.npy/.npz) -> fields,
