@@ -1,0 +1,29 @@
+# Designed filters are not versioned (keep only the folder's README)
+filters/*
+!filters/README.md
+
+# Generated C header (build artifact from the gitignored specs)
+lib/include/filter_sos.h
+
+# Python
+.venv/
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+uv.lock
+
+# C build / tests
+build/
+*.o
+*.obj
+*.so
+*.dll
+*.exe
+*.dylib
+
+# Ceedling / Unity
+tests/c/build/
+
+# Logs
+*.log
