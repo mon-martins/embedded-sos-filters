@@ -3,7 +3,7 @@ filters/*
 !filters/README.md
 
 # Generated C header (build artifact from the gitignored specs)
-lib/include/filter_sos.h
+lib/include/filters_coeffs.h
 
 # Python
 .venv/
