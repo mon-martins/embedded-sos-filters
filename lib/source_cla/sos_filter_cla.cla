@@ -1,0 +1,106 @@
+/**
+ * @file  sos_filter_cla.cla
+ * @brief Cascaded SOS IIR filter, Direct Form II Transposed, float32 --
+ *        CLA C implementation for the TI C2000 Control Law Accelerator.
+ *
+ * Compile with the TI cl2000 compiler and --cla_support (e.g. --cla_support=cla1).
+ * The math is identical to the portable C version; what differs is *where it
+ * runs* and the build/memory setup.
+ *
+ * Design for the CLA:
+ *   - single-precision float only (float32_t) -- no double on the CLA;
+ *   - every function here is a LEAF (none calls another): the per-sample
+ *     cascade is inlined by hand in sos_cla_process_block, so the CLA call
+ *     depth stays at 1 from a task (works on every CGT version) with no
+ *     per-sample call overhead;
+ *   - no recursion (the CLA has no stack; locals live in the scratchpad);
+ *   - 16-bit native int on C2000, so block lengths use uint16_t;
+ *   - the coefficient, state and I/O buffers must reside in CLA-accessible
+ *     RAM (set up via the linker command file / #pragma DATA_SECTION).
+ */
+#include "sos_filter_cla.h"
+
+void sos_cla_init(sos_filt_t *f, const float32_t *coeffs,
+                  float32_t *state, uint8_t n_sections)
+{
+    uint16_t i;
+    uint16_t n = (uint16_t)n_sections * SOS_STATE_PER_SECTION;
+
+    f->coeffs = coeffs;
+    f->state = state;
+    f->n_sections = n_sections;
+    for (i = 0; i < n; ++i) {
+        state[i] = 0.0f;
+    }
+}
+
+void sos_cla_reset(sos_filt_t *f)
+{
+    uint16_t i;
+    uint16_t n = (uint16_t)f->n_sections * SOS_STATE_PER_SECTION;
+
+    for (i = 0; i < n; ++i) {
+        f->state[i] = 0.0f;
+    }
+}
+
+float32_t sos_cla_process(sos_filt_t *f, float32_t x)
+{
+    const float32_t *c = f->coeffs;
+    float32_t *s = f->state;
+    uint16_t i;
+
+    for (i = 0; i < f->n_sections; ++i) {
+        float32_t b0 = c[0];
+        float32_t b1 = c[1];
+        float32_t b2 = c[2];
+        float32_t a1 = c[3];
+        float32_t a2 = c[4];
+
+        /* Direct Form II Transposed:
+         *   y    = b0*x + s0
+         *   s0'  = b1*x - a1*y + s1
+         *   s1'  = b2*x - a2*y
+         */
+        float32_t y = b0 * x + s[0];
+        s[0] = b1 * x - a1 * y + s[1];
+        s[1] = b2 * x - a2 * y;
+
+        x = y;
+        c += SOS_COEFFS_PER_SECTION;
+        s += SOS_STATE_PER_SECTION;
+    }
+    return x;
+}
+
+void sos_cla_process_block(sos_filt_t *f, const float32_t *in,
+                           float32_t *out, uint16_t n)
+{
+    uint16_t k;
+
+    /* Cascade inlined by hand (no call to sos_cla_process) to keep this a
+     * CLA leaf function. */
+    for (k = 0; k < n; ++k) {
+        const float32_t *c = f->coeffs;
+        float32_t *s = f->state;
+        float32_t x = in[k];
+        uint16_t i;
+
+        for (i = 0; i < f->n_sections; ++i) {
+            float32_t b0 = c[0];
+            float32_t b1 = c[1];
+            float32_t b2 = c[2];
+            float32_t a1 = c[3];
+            float32_t a2 = c[4];
+
+            float32_t y = b0 * x + s[0];
+            s[0] = b1 * x - a1 * y + s[1];
+            s[1] = b2 * x - a2 * y;
+
+            x = y;
+            c += SOS_COEFFS_PER_SECTION;
+            s += SOS_STATE_PER_SECTION;
+        }
+        out[k] = x;
+    }
+}
