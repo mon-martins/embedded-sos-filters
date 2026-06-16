@@ -8,15 +8,12 @@
  * runs* and the build/memory setup.
  *
  * Design for the CLA:
- *   - single-precision float only (float32_t) -- no double on the CLA;
  *   - every function here is a LEAF (none calls another): the per-sample
  *     cascade is inlined by hand in sos_cla_process_block, so the CLA call
  *     depth stays at 1 from a task (works on every CGT version) with no
  *     per-sample call overhead;
  *   - no recursion (the CLA has no stack; locals live in the scratchpad);
  *   - 16-bit native int on C2000, so block lengths use uint16_t;
- *   - the coefficient, state and I/O buffers must reside in CLA-accessible
- *     RAM (set up via the linker command file / #pragma DATA_SECTION).
  */
 #include "sos_filter_cla.h"
 

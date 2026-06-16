@@ -3,8 +3,7 @@
  * @brief   Cascaded second-order sections (SOS) IIR filter,
  *          Direct Form II Transposed (DF2T), float32.
  *
- * Portable C API. No dynamic allocation: the caller owns the coefficient and
- * state buffers. Suitable for embedded targets (ARM Cortex-M, TI C2000, ...).
+ * Portable C API suitable for embedded targets (ARM Cortex-M, TI C2000, ...).
  *
  * Coefficient layout (matches the generated filters_coeffs.h):
  *   5 coefficients per section, denominator normalized to a0 = 1:
@@ -16,13 +15,15 @@
  *
  * State (DF2T): 2 delay variables per section -> state[2*n_sections].
  */
+
 #ifndef SOS_FILTER_H
 #define SOS_FILTER_H
 
-/* Shared types, guarded so sos_filter.h and sos_filter_cla.h can both be
- * included in the same translation unit without redefinition. */
-#ifndef SOS_FILTER_TYPES_DEFINED
-#define SOS_FILTER_TYPES_DEFINED
+#ifdef SOS_FILTER_CLA_H
+#error "sos_filter_cla.h must not be included with sos_filter.h"
+#endif
+
+#include "mcu_types.h"
 
 #define SOS_COEFFS_PER_SECTION 5u
 #define SOS_STATE_PER_SECTION  2u
@@ -32,8 +33,6 @@ typedef struct {
     float32_t       *state;   /**< 2 states per section (zeroed on init) */
     uint8_t          n_sections;
 } sos_filt_t;
-
-#endif /* SOS_FILTER_TYPES_DEFINED */
 
 #ifdef __cplusplus
 extern "C" {
