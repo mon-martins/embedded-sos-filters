@@ -39,12 +39,33 @@ def spec_to_filter(spec: dict) -> dict:
     }
 
 
+REQUIRED_KEYS = ("name", "zeros", "poles", "gain")
+
+
+def _is_spec(obj) -> bool:
+    """A canonical spec is a JSON object carrying at least the required keys."""
+    return isinstance(obj, dict) and all(k in obj for k in REQUIRED_KEYS)
+
+
 def collect_specs(in_dir: Path) -> list[dict]:
-    """Find and load every canonical *.json spec under in_dir."""
+    """Find and load every canonical *.json spec under in_dir.
+
+    The folder is scanned recursively; JSON files that aren't canonical specs
+    (or aren't valid JSON) are skipped with a warning rather than aborting.
+    """
     files = sorted(in_dir.rglob("*.json"))
     filters, seen = [], {}
     for path in files:
-        spec = json.loads(path.read_text(encoding="utf-8"))
+        try:
+            spec = json.loads(path.read_text(encoding="utf-8"))
+        except (OSError, json.JSONDecodeError) as exc:
+            print(f"[convert] skip {path}: not valid JSON ({exc})")
+            continue
+        if not _is_spec(spec):
+            missing = ([k for k in REQUIRED_KEYS if k not in spec]
+                       if isinstance(spec, dict) else "not a JSON object")
+            print(f"[convert] skip {path}: not a canonical spec (missing {missing})")
+            continue
         name = spec["name"]
         if name in seen:
             raise ValueError(f"duplicate filter name {name!r}: {seen[name]} and {path}")

@@ -9,7 +9,7 @@ dependencies = [
     "numpy",
     "scipy",
     "matplotlib",
-    "cffi",
+    "PyQt5",
 ]
 
 [project.optional-dependencies]
