@@ -11,15 +11,8 @@ jobs:
     steps:
       - uses: actions/checkout@v5
 
-      - uses: actions/setup-python@v6
-        with:
-          python-version: "3.11"
-
-      # Deps the current test suite needs (numpy/scipy for the pipeline,
-      # matplotlib for the validation plots). Expand as more tests are added
-      # (e.g. cffi + a C compiler for golden tests).
-      - name: Install dependencies
-        run: python -m pip install --upgrade pip numpy scipy matplotlib pytest
-
+      # Run the suite in the project's Docker image (Python + deps + gcc), the
+      # same environment used locally, so the compile and golden tests build
+      # the C library and load it via ctypes with no host setup.
       - name: Run tests
-        run: pytest -v
+        run: docker compose run --rm tests

@@ -1,0 +1,10 @@
+# Run the test suite in the pinned environment:
+#     docker compose run --rm tests
+#
+# The repo is mounted at /work, so edits on the host are picked up without
+# rebuilding the image (rebuild only when Dockerfile changes).
+services:
+  tests:
+    build: .
+    volumes:
+      - .:/work
