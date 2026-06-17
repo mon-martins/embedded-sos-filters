@@ -38,7 +38,7 @@ HEADER_TOP = """\
  * Per filter, UPPERCASE #define macros only:
  *   FILTER_SOS_<NAME>_N_SECTIONS   section count
  *   FILTER_SOS_<NAME>_COEFFS       brace initializer, 5 per section: b0,b1,b2,a1,a2
- *   FILTER_SOS_<NAME>_<PARAM>      numeric params (ORDER, GAIN, FS, ...)
+ *   FILTER_SOS_<NAME>_<PARAM>      numeric params (ORDER, FS, ...)
  */
 #ifndef FILTERS_COEFFS_H
 #define FILTERS_COEFFS_H

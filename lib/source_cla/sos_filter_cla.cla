@@ -18,7 +18,7 @@
 #include "sos_filter_cla.h"
 
 void sos_cla_init(sos_filt_t *f, const float32_t *coeffs,
-                  float32_t *state, uint8_t n_sections)
+                  float32_t *state, uint16_t n_sections)
 {
     uint16_t i;
     uint16_t n = (uint16_t)n_sections * SOS_STATE_PER_SECTION;

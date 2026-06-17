@@ -18,7 +18,7 @@
 typedef struct {
     const float32_t *coeffs;  /**< 5 coeffs per section: b0,b1,b2,a1,a2 */
     float32_t       *state;   /**< 2 states per section (zeroed on init) */
-    uint8_t          n_sections;
+    uint16_t         n_sections;
 } sos_filt_t;
 
 #ifdef __cplusplus
@@ -27,7 +27,7 @@ extern "C" {
 
 /** @brief Initialize the instance and clear the state (runs on the CLA). */
 void sos_cla_init(sos_filt_t *f, const float32_t *coeffs,
-                  float32_t *state, uint8_t n_sections);
+                  float32_t *state, uint16_t n_sections);
 
 /** @brief Clear the internal state, keeping the coefficients (runs on the CLA). */
 void sos_cla_reset(sos_filt_t *f);

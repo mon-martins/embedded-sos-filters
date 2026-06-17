@@ -8,7 +8,8 @@ turns each into normalized SOS, and writes ONE `filters_coeffs.h` (UPPERCASE
 
 Per spec:
 - build SOS via prepare.zpk_to_sos (symmetrize + zpk2sos),
-- emit COEFFS (5/section), N_SECTIONS, plus ORDER / GAIN / FS macros,
+- emit COEFFS (5/section), N_SECTIONS, plus ORDER / FS macros
+  (the gain is folded into the coefficients by zpk2sos, so it is not emitted),
 - the spec name -> FILTER_SOS_<NAME>_*, description -> comment.
 Odd order works transparently (a 1st-order section is [b0,b1,0,a1,0]).
 """
@@ -26,9 +27,11 @@ def spec_to_filter(spec: dict) -> dict:
     """Turn a canonical spec into the dict render_header() expects."""
     zeros, poles, gain = spec_zpk(spec)
     sos = zpk_to_sos(zeros, poles, gain)
+    # NOTE: the gain is already baked into the SOS numerator coefficients by
+    # zpk2sos, so it is deliberately NOT emitted as a macro -- a standalone
+    # GAIN #define would be misleading (the runtime never multiplies by it).
     params = {
         "ORDER": spec.get("order"),
-        "GAIN": spec.get("gain"),
         "FS": spec.get("fs"),
     }
     return {
